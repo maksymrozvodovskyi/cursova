@@ -72,7 +72,9 @@ export const optimizeScene = new Scenes.WizardScene<BotContext>(
 
     const { lastBuild, useCase, sourceBudget } = getState(ctx);
     if (!lastBuild || !useCase || sourceBudget == null) {
-      await ctx.reply("Сесія втрачена. Поверніться до /build і спробуйте знову.");
+      await ctx.reply(
+        "Сесія втрачена. Поверніться до /build і спробуйте знову.",
+      );
       return ctx.scene.leave();
     }
 

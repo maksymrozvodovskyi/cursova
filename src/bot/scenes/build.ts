@@ -457,9 +457,11 @@ buildScene.action(/^buildswap:([0-2])$/, async (ctx) => {
   ) {
     const inc = includeOptimizeInPostBuildMenu(st);
     await ctx.reply(
-      ["Цей вибір застарів. Оберіть позицію знову.", "", postBuildMenuHint(inc)].join(
-        "\n",
-      ),
+      [
+        "Цей вибір застарів. Оберіть позицію знову.",
+        "",
+        postBuildMenuHint(inc),
+      ].join("\n"),
       postBuildMenuMarkup(inc),
     );
     ctx.wizard.selectStep(3);
