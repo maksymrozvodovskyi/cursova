@@ -1,0 +1,47 @@
+generator client {
+  provider      = "prisma-client-js"
+  output        = "./generated/prisma"
+  engineType    = "library"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  telegramId BigInt   @unique
+  username   String?
+  firstName  String?
+  builds     Build[]
+  createdAt  DateTime @default(now())
+}
+
+model Build {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  budget      Int
+  useCase     String
+  components  Json
+  totalPrice  Int
+  explanation String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ComponentCache {
+  id             Int      @id @default(autoincrement())
+  query          String
+  normalizedName String
+  price          Int
+  url            String
+  source         String   @default("hotline")
+  lastUpdated    DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  @@unique([query, source], name: "query_source")
+  @@index([lastUpdated])
+}
