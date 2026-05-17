@@ -8,6 +8,7 @@ import { buildScene, BUILD_SCENE_ID } from "./scenes/build";
 import { optimizeScene } from "./scenes/optimize";
 import { loggerMiddleware, logger } from "./middlewares/logger";
 import { rateLimitMiddleware } from "./middlewares/rateLimit";
+import { startHttpHealthListener } from "../httpHealth";
 
 export function createBot(): Telegraf<BotContext> {
   const bot = new Telegraf<BotContext>(env.BOT_TOKEN);
@@ -30,18 +31,20 @@ export function createBot(): Telegraf<BotContext> {
   return bot;
 }
 
-export function startBot(): Promise<Telegraf<BotContext>> {
+export async function startBot(): Promise<Telegraf<BotContext>> {
+  const healthServer = await startHttpHealthListener();
   const bot = createBot();
 
-  process.once("SIGINT", () => bot.stop("SIGINT"));
-  process.once("SIGTERM", () => bot.stop("SIGTERM"));
+  const shutdown = (signal: "SIGINT" | "SIGTERM") => {
+    healthServer?.close();
+    bot.stop(signal);
+  };
+  process.once("SIGINT", () => shutdown("SIGINT"));
+  process.once("SIGTERM", () => shutdown("SIGTERM"));
 
-  return new Promise((resolve, reject) => {
-    bot
-      .launch(() => {
-        logger.info("Bot started");
-        resolve(bot);
-      })
-      .catch(reject);
+  await new Promise<void>((resolve, reject) => {
+    bot.launch(() => resolve()).catch(reject);
   });
+  logger.info("Bot started");
+  return bot;
 }
